@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Captioning AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Upload an Image</h1>
+  <input type="file" id="imageInput">
+  <button onclick="uploadImage()">Generate Caption</button>
+  <p id="caption"></p>
+  <img id="preview" style="max-width: 300px; margin-top: 20px;">
+
+  <script>
+    function uploadImage() {
+      const fileInput = document.getElementById('imageInput');
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+
+      fetch('/caption', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('caption').textContent = data.caption;
+      })
+      .catch(err => {
+        document.getElementById('caption').textContent = "Error generating caption.";
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Captioning AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+   <title>Gallery</title>
+</head>
+<body>
+   <h1>Uploaded Images & Captions</h1>
+    <div class="gallery">
+        {% for item in history %}
+        <div class="item">
+            <img src="{{ url_for('static', filename='../uploads/' + item.filename) }}" width="200">
+        <p>{{ item.caption }}</p>
+  <form method="POST"action="/caption" enctype="multipart/form-data" onsubmit="showSpinner()">
+    <input type="file" name="image" id="imageInput" required>
+    <button type="submit">Generate Caption</button>
+    <div id="spinner" class="spinner" style="display:none;">
+        <img src="{{ url_for('static', filename='../uploads/' + item.filename) }}" width="200">
+        <p>{{ item.caption }}</p>
+    </div>
+     <img src="{{ url_for('static', filename='../uploads/' + item.filename) }}" width="200">
+</form>
+
+  <img id="preview" style="max-width: 300px; margin-top: 20px;">
+  <p id="caption" class="caption"><button onclick="speakCaption()">🔊 Speak Caption</button>
+</p>
+
+  <script>
+    function speakCaption() {
+  const caption = document.getElementById('caption').textContent;
+  const utterance = new SpeechSynthesisUtterance(caption);
+  speechSynthesis.speak(utterance);
+}
+  function showSpinner() {
+    document.getElementById('spinner').style.display = 'block';
+  }
+
+  const form = document.querySelector('form');
+  form.addEventListener('submit', () => {
+    const fileInput = document.getElementById('imageInput');
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      document.getElementById('preview').src = e.target.result;
+    };
+    reader.readAsDataURL(fileInput.files[0]);
+  });
+
+  fetch('/caption', {
+    method: 'POST',
+    body: new FormData(document.querySelector('form'))
+  })
+  .then(res => res.json())
+  .then(data => {
+    const captionText = data.caption;
+    document.getElementById('caption').textContent = captionText;
+
+    const utterance = new SpeechSynthesisUtterance(captionText);
+    speechSynthesis.speak(utterance);
+  })
+  .catch(err => {
+    document.getElementById('caption').textContent = "Error generating caption.";
+  });
+</script>
+</body>
+</html>
